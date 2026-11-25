@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a1210">
+<title>Explorer's Papers · SARKHAND</title>
+<meta name="description" content="A pocket character sheet for SARKHAND — track your explorer's stats, rations, lights, cartridges and rupees.">
+<style>
+  :root {
+    --parchment: #f3ead6;
+    --card: #faf5e6;
+    --ox: #6b1f1f;
+    --gold: #8a6d3b;
+    --ink: #2d2416;
+    --dim: #6b5636;
+    --dark: #2a1210;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    background: var(--dark);
+    font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    color: var(--ink);
+  }
+  .page {
+    max-width: 560px;
+    margin: 0 auto;
+    background: var(--parchment);
+    min-height: 100vh;
+    padding: 0 14px calc(28px + env(safe-area-inset-bottom)) 14px;
+  }
+  header {
+    text-align: center;
+    padding: 18px 0 10px 0;
+    border-bottom: 2.5px double var(--gold);
+    margin-bottom: 14px;
+  }
+  header .over { letter-spacing: .35em; font-size: .62rem; color: var(--gold); text-transform: uppercase; }
+  header h1 {
+    margin: 2px 0 4px 0;
+    font-size: 1.45rem;
+    letter-spacing: .12em;
+    color: var(--ox);
+    text-transform: uppercase;
+  }
+  header .sub { font-style: italic; font-size: .78rem; color: var(--dim); }
+
+  .sec {
+    background: var(--card);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .sec h2 {
+    margin: -12px -12px 10px -12px;
+    padding: 7px 12px;
+    background: var(--ox);
+    color: #e9d9ac;
+    font-size: .72rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    border-radius: 5px 5px 0 0;
+    font-weight: bold;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .sec h2 .hint { letter-spacing: .02em; text-transform: none; font-weight: normal; font-style: italic; font-size: .68rem; color: #cdb27a; }
+
+  label { display: block; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+  input[type="text"], textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gold);
+    padding: 4px 2px;
+    border-radius: 0;
+  }
+  input[type="text"]:focus, textarea:focus { outline: none; border-bottom: 2px solid var(--ox); }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.45; border: 1px dashed var(--gold); border-radius: 4px; padding: 8px; background: rgba(255,255,255,.25); }
+
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; min-width: 0; }
+  .mb { margin-bottom: 10px; }
+
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .stat { text-align: center; }
+  .stat .box {
+    border: 1.5px solid var(--gold);
+    border-radius: 6px;
+    background: rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .stat .val { font-size: 1.25rem; font-weight: bold; color: var(--ox); min-width: 1.6ch; text-align: center; }
+  .stat button, .counter button {
+    font: inherit; border: none; background: none; color: var(--gold);
+    font-size: 1.3rem; font-weight: bold; padding: 6px 9px; cursor: pointer; line-height: 1;
+  }
+  .stat button:active, .counter button:active, .pip:active, .tick:active { transform: scale(.9); }
+  .stat label { margin: 4px 0 0 0; }
+
+  /* counters (HP, rupees) */
+  .counter {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1.5px solid var(--gold); border-radius: 6px; background: rgba(255,255,255,.3);
+  }
+  .counter .val { font-size: 1.5rem; font-weight: bold; color: var(--ox); text-align: center; flex: 1; }
+  .counter button { font-size: 1.5rem; padding: 10px 16px; }
+  .counter.small .val { font-size: 1.15rem; }
+  .counter.small button { font-size: 1.2rem; padding: 8px 13px; }
+
+  /* fortune pips */
+  .pips { display: flex; gap: 10px; }
+  .pip {
+    width: 34px; height: 34px; border: 2px solid var(--ox); border-radius: 50%;
+    background: transparent; cursor: pointer; font-size: 1.05rem; line-height: 1;
+    color: var(--ox);
+  }
+  .pip.on { background: var(--ox); color: #e9d9ac; }
+
+  /* consumable ticks */
+  .ticks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .tick {
+    width: 32px; height: 32px;
+    border: 1.6px solid #4a3320; border-radius: 4px;
+    background: #fdfaf2; cursor: pointer; color: var(--ox);
+    font-size: 1.1rem; font-weight: bold; line-height: 1; padding: 0;
+  }
+  .tick.used { background: var(--ox); border-color: var(--ox); color: #e9d9ac; }
+  .bundle { font-size: .68rem; font-style: italic; color: var(--dim); margin-top: 6px; }
+
+  .slotline { font-size: .75rem; color: var(--dim); font-style: italic; margin-top: 8px; text-align: right; }
+
+  .telegram {
+    font-family: "Courier New", Courier, monospace;
+    font-size: .64rem; letter-spacing: .03em;
+    background: #efe8d2; border: 1px dashed var(--gold);
+    padding: 8px 10px; margin: 14px 0; text-transform: uppercase;
+    color: var(--dim); line-height: 1.7; text-align: center;
+  }
+
+  .crib { font-size: .74rem; line-height: 1.55; color: var(--ink); }
+  .crib b { color: var(--ox); }
+
+  .footer { text-align: center; font-size: .66rem; color: var(--dim); font-style: italic; margin-top: 16px; line-height: 1.7; }
+  .footer .rule { color: var(--gold); letter-spacing: .5em; margin-bottom: 6px; }
+
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .actions button {
+    flex: 1; font: inherit; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px; border-radius: 6px; cursor: pointer;
+    border: 1.5px solid var(--gold); background: transparent; color: var(--dim);
+  }
+  .actions button.danger { border-color: var(--ox); color: var(--ox); }
+  .saved {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    background: var(--dark); color: #e9d9ac; font-size: .7rem; letter-spacing: .15em;
+    padding: 6px 14px; border-radius: 20px; opacity: 0; transition: opacity .4s; pointer-events: none;
+  }
+  .saved.show { opacity: .92; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="over">Sarkhand &middot; Third Edition</div>
+    <h1>Explorer's Papers</h1>
+    <div class="sub">If found, return to the Survey Office, Zanapur. Reward doubtful.</div>
+  </header>
+
+  <div class="sec">
+    <h2>The Explorer</h2>
+    <div class="row mb">
+      <div><label>Name</label><input type="text" data-k="name" autocomplete="off"></div>
+      <div style="flex:.7"><label>&ldquo;Nickname&rdquo;</label><input type="text" data-k="nick" autocomplete="off"></div>
+    </div>
+    <div class="row mb">
+      <div><label>Surname</label><input type="text" data-k="surname" autocomplete="off"></div>
+      <div style="flex:.45"><label>Level</label><input type="text" data-k="level" inputmode="numeric" autocomplete="off"></div>
+      <div style="flex:.45"><label>XP</label><input type="text" data-k="xp" inputmode="numeric" autocomplete="off"></div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Fortune</label>
+        <div class="pips" id="pips"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>Stats <span class="hint">2d6 + stat &middot; 8 / 10 / 12</span></h2>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="sec">
+    <h2>Hit Points <span class="hint">start: 6 + TOU</span></h2>
+    <div class="row">
+      <div>
+        <label>Current</label>
+        <div class="counter"><button data-c="hp" data-d="-1">&minus;</button><div class="val" id="v-hp">7</div><button data-c="hp" data-d="1">+</button></div>
+      </div>
+      <div style="flex:.6">
+        <label>Maximum</label>
+        <div class="counter small"><button data-c="hpmax" data-d="-1">&minus;</button><div class="val" id="v-hpmax">7</div><button data-c="hpmax" data-d="1">+</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>The Consumables <span class="hint">tap to spend</span></h2>
+    <label>Rations</label>
+    <div class="ticks" data-t="rations" data-n="12"></div>
+    <label style="margin-top:12px">Light Sources</label>
+    <div class="ticks" data-t="lights" data-n="9"></div>
+    <label style="margin-top:12px">Cartridge Boxes <span style="text-transform:none; letter-spacing:0">(d6 when spent &mdash; on a 6, keep it)</span></label>
+    <div class="ticks" data-t="carts" data-n="6"></div>
+    <div class="bundle">Bundles of 3 &mdash; rations, lights, cartridge boxes each pack 3 to an inventory slot.</div>
+    <div style="margin-top:12px">
+      <label>Rupees</label>
+      <div class="counter small">
+        <button data-c="rupees" data-d="-10">&minus;10</button>
+        <button data-c="rupees" data-d="-1">&minus;</button>
+        <div class="val" id="v-rupees">0</div>
+        <button data-c="rupees" data-d="1">+</button>
+        <button data-c="rupees" data-d="10">+10</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>What Fate Brought You Here</h2>
+    <textarea data-k="fate" rows="3" placeholder="Motivation, quest &amp; story&hellip;"></textarea>
+  </div>
+
+  <div class="sec">
+    <h2>Skills &amp; Mysteries</h2>
+    <textarea data-k="skills" rows="4" placeholder="One per level &mdash; and the Vessel, if you carry one&hellip;"></textarea>
+  </div>
+
+  <div class="sec">
+    <h2>Gear <span class="hint" id="slots">carry STR + 8</span></h2>
+    <textarea data-k="gear" rows="5" placeholder="The golden idol counts. That's the whole point of the hired bearers&hellip;"></textarea>
+  </div>
+
+  <div class="sec">
+    <h2>Wounds, Curses &amp; Debts</h2>
+    <textarea data-k="wounds" rows="3" placeholder="Who you owe, what you carry, what still aches when it rains&hellip;"></textarea>
+  </div>
+
+  <div class="sec crib">
+    <h2>The Pocket Crib</h2>
+    <b>Everything:</b> 2d6 + stat vs. 8 (hard 10, extreme 12). Two 6's crit, two 1's fumble. Boxcars on anything: +1 Fortune.<br>
+    <b>Fortune buys:</b> a re-roll &middot; a flashback item &middot; soak d6 damage &middot; reach one relic Tier up.<br>
+    <b>Attack:</b> STR melee / AGI guns. Damage adds the same (not dynamite). 6's explode once.<br>
+    <b>0 HP:</b> 2d6 + TOU on Death &amp; Wounding. <b>Heal:</b> battle's end 1 + TOU; full rest d6 + TOU.
+  </div>
+
+  <div class="telegram">
+    END OF DAY // RATION SPENT? // NIGHT CHECK 1&ndash;2? // WOUNDS? //<br>
+    WHAT QUESTION DO YOU CARRY INTO TOMORROW STOP
+  </div>
+
+  <div class="actions">
+    <button id="share">Share this sheet</button>
+    <button id="reset" class="danger">New explorer</button>
+  </div>
+
+  <div class="footer">
+    <div class="rule">&#10022;&nbsp;&#10022;&nbsp;&#10022;</div>
+    Saves itself on this device as you type &mdash; your papers stay in your pocket.<br>
+    SARKHAND &middot; Created by Matt &ldquo;Kingfisher&rdquo; Bodnar &middot; Inspired by Castle Grief &middot; personal use only
+  </div>
+</div>
+
+<div class="saved" id="saved">PAPERS FILED STOP</div>
+
+<script>
+(function(){
+  var KEY = 'sarkhand-papers-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { state = {}; }
+
+  var defaults = {
+    name:'', nick:'', surname:'', level:'1', xp:'0',
+    fate:'', skills:'', gear:'', wounds:'',
+    fortune:1, hp:7, hpmax:7, rupees:0,
+    STR:0, AGI:0, TOU:0, INT:0, PRE:0,
+    rations:[], lights:[], carts:[]
+  };
+  for (var k in defaults) if (!(k in state)) state[k] = defaults[k];
+
+  var saveTimer, savedEl = document.getElementById('saved');
+  function save(quiet){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+    if (quiet) return;
+    savedEl.classList.add('show');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){ savedEl.classList.remove('show'); }, 900);
+  }
+
+  // text fields
+  document.querySelectorAll('[data-k]').forEach(function(el){
+    el.value = state[el.dataset.k] || '';
+    el.addEventListener('input', function(){ state[el.dataset.k] = el.value; save(true); });
+    el.addEventListener('change', function(){ save(); });
+  });
+
+  // stats
+  var statsEl = document.getElementById('stats');
+  ['STR','AGI','TOU','INT','PRE'].forEach(function(st){
+    var d = document.createElement('div');
+    d.className = 'stat';
+    d.innerHTML = '<div class="box"><button aria-label="lower '+st+'">&minus;</button><div class="val" id="v-'+st+'"></div><button aria-label="raise '+st+'">+</button></div><label>'+st+'</label>';
+    var btns = d.querySelectorAll('button');
+    btns[0].onclick = function(){ bump(st, -1, -3, 5); };
+    btns[1].onclick = function(){ bump(st, 1, -3, 5); };
+    statsEl.appendChild(d);
+  });
+
+  function fmtStat(n){ return (n > 0 ? '+' : '') + n; }
+  function bump(k, d, lo, hi){
+    state[k] = Math.max(lo, Math.min(hi, (state[k]||0) + d));
+    render(); save();
+  }
+
+  // counters
+  document.querySelectorAll('[data-c]').forEach(function(b){
+    b.onclick = function(){
+      var k = b.dataset.c, d = parseInt(b.dataset.d, 10);
+      var lo = (k === 'rupees') ? 0 : 0;
+      var hi = (k === 'rupees') ? 999999 : 99;
+      state[k] = Math.max(lo, Math.min(hi, (state[k]||0) + d));
+      render(); save();
+    };
+  });
+
+  // fortune pips
+  var pipsEl = document.getElementById('pips');
+  for (var i = 0; i < 5; i++){
+    (function(i){
+      var p = document.createElement('button');
+      p.className = 'pip';
+      p.setAttribute('aria-label', 'fortune point ' + (i+1));
+      p.onclick = function(){
+        state.fortune = (state.fortune === i + 1) ? i : i + 1;
+        render(); save();
+      };
+      pipsEl.appendChild(p);
+    })(i);
+  }
+
+  // consumable ticks
+  document.querySelectorAll('.ticks').forEach(function(wrap){
+    var t = wrap.dataset.t, n = parseInt(wrap.dataset.n, 10);
+    for (var i = 0; i < n; i++){
+      (function(i){
+        var b = document.createElement('button');
+        b.className = 'tick';
+        b.onclick = function(){
+          var arr = state[t];
+          var idx = arr.indexOf(i);
+          if (idx >= 0) arr.splice(idx, 1); else arr.push(i);
+          render(); save();
+        };
+        wrap.appendChild(b);
+      })(i);
+    }
+  });
+
+  function render(){
+    ['STR','AGI','TOU','INT','PRE'].forEach(function(st){
+      document.getElementById('v-' + st).textContent = fmtStat(state[st]||0);
+    });
+    ['hp','hpmax','rupees'].forEach(function(k){
+      document.getElementById('v-' + k).textContent = state[k];
+    });
+    document.querySelectorAll('#pips .pip').forEach(function(p, i){
+      p.classList.toggle('on', i < state.fortune);
+      p.innerHTML = i < state.fortune ? '&#10022;' : '';
+    });
+    document.querySelectorAll('.ticks').forEach(function(wrap){
+      var t = wrap.dataset.t;
+      wrap.querySelectorAll('.tick').forEach(function(b, i){
+        var used = state[t].indexOf(i) >= 0;
+        b.classList.toggle('used', used);
+        b.innerHTML = used ? '&times;' : '';
+      });
+    });
+    document.getElementById('slots').textContent = 'carry ' + ((state.STR||0) + 8) + ' items (STR + 8)';
+  }
+
+  // actions
+  document.getElementById('reset').onclick = function(){
+    if (!confirm('Burn these papers and start a new explorer?')) return;
+    state = JSON.parse(JSON.stringify(defaults));
+    document.querySelectorAll('[data-k]').forEach(function(el){ el.value = ''; });
+    document.querySelector('[data-k="level"]').value = state.level;
+    document.querySelector('[data-k="xp"]').value = state.xp;
+    render(); save();
+  };
+  document.getElementById('share').onclick = function(){
+    var url = location.href.split('#')[0];
+    if (navigator.share) {
+      navigator.share({ title: "Explorer's Papers · SARKHAND", url: url }).catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      savedEl.textContent = 'LINK COPIED STOP';
+      savedEl.classList.add('show');
+      setTimeout(function(){ savedEl.classList.remove('show'); savedEl.textContent = 'PAPERS FILED STOP'; }, 1200);
+    }
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
